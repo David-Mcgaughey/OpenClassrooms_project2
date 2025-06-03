@@ -1,60 +1,60 @@
 import requests
 from bs4 import BeautifulSoup
 import csv
-from urllib.parse import urljoin
 
+# Step 1: Get the webpage
+url = "http://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html"
+response = requests.get(url)
+html = response.text
 
-def get_soup(url):
-    response = requests.get(url)
-    response.raise_for_status()
-    return BeautifulSoup(response.text, "html.parser")
+# Step 2: Turn HTML into soup
+soup = BeautifulSoup(html, "html.parser")
 
+# Step 3: Find book information
+title = soup.h1.text
 
-def extract_book_data(book_url):
-    soup = get_soup(book_url)
+table = soup.find("table", class_="table table-striped")
+rows = table.find_all("tr")
 
-    title = soup.h1.text
-    table = soup.find("table", class_="table table-striped")
-    rows = {row.th.text: row.td.text for row in table.find_all("tr")}
+# Make a simple dictionary from the table
+book_info = {}
+for row in rows:
+    header = row.th.text
+    value = row.td.text
+    book_info[header] = value
 
-    description_tag = soup.find("meta", attrs={"name": "description"})
-    description = description_tag["content"].strip() if description_tag else "No description"
+# Description
+description_tag = soup.find("meta", attrs={"name": "description"})
+if description_tag:
+    description = description_tag["content"].strip()
+else:
+    description = "No description"
 
-    category = soup.find("ul", class_="breadcrumb").find_all("li")[2].text.strip()
-    rating = soup.find("p", class_="star-rating")["class"][1]
+# Category
+category = soup.find("ul", class_="breadcrumb").find_all("li")[2].text.strip()
 
-    image_url = urljoin(book_url, soup.find("div", class_="item active").img["src"])
+# Rating
+rating_tag = soup.find("p", class_="star-rating")
+rating = rating_tag["class"][1] if rating_tag else "No rating"
 
-    return {
-        "product_page_url": book_url,
-        "universal_ product_code (upc)": rows.get("UPC", ""),
-        "book_title": title,
-        "price_including_tax": rows.get("Price (incl. tax)", ""),
-        "price_excluding_tax": rows.get("Price (excl. tax)", ""),
-        "quantity_available": rows.get("Availability", ""),
-        "product_description": description,
-        "category": category,
-        "review_rating": rating,
-        "image_url": image_url
-    }
+# Image URL
+image_tag = soup.find("img")
+image_url = "http://books.toscrape.com/" + image_tag["src"].replace("../", "")
 
+# Step 4: Save the data to CSV
+with open("one_book.csv", mode="w", newline="", encoding="utf-8") as file:
+    writer = csv.writer(file)
+    writer.writerow(["Title", "UPC", "Price (incl. tax)", "Price (excl. tax)", "Availability", "Description", "Category", "Rating", "Image URL"])
+    writer.writerow([
+        title,
+        book_info.get("UPC", ""),
+        book_info.get("Price (incl. tax)", ""),
+        book_info.get("Price (excl. tax)", ""),
+        book_info.get("Availability", ""),
+        description,
+        category,
+        rating,
+        image_url
+    ])
 
-def write_to_csv(data, filename="one_book.csv"):
-    with open(filename, mode="w", newline="", encoding="utf-8") as csv_file:
-        writer = csv.DictWriter(csv_file, fieldnames=data.keys())
-        writer.writeheader()
-        writer.writerow(data)
-    print(f"Data written to {filename}")
-
-
-def main():
-
-    book_url = "http://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html"
-
-    print("Scraping one book...")
-    book_data = extract_book_data(book_url)
-    write_to_csv(book_data)
-
-
-if __name__ == "__main__":
-    main()
+print("Book info saved to one_book.csv")
