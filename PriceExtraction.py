@@ -3,13 +3,29 @@ from bs4 import BeautifulSoup
 import csv
 
 base_url = "http://books.toscrape.com/"
-category_url = "http://books.toscrape.com/catalogue/category/books/science_22/index.html"
-response = requests.get(category_url)
-soup = BeautifulSoup(response.text, "html.parser")
+start_url = "http://books.toscrape.com/catalogue/category/books/science_22/index.html"
+current_url = start_url
 
-# Collect all book URLs from category page and store in list
-book_links = soup.select("h3 a")
-book_urls = [base_url + "catalogue/" + link["href"].replace("../", "") for link in book_links]
+book_urls = []
+
+while current_url:
+    response = requests.get(current_url)
+    soup = BeautifulSoup(response.text, "html.parser")
+
+    # Collect all book URLs from category page and store in list
+    book_links = soup.select("h3 a")
+    for link in book_links:
+        partial_url = link["href"].replace("../", "")
+        full_url = base_url + "catalogue/" + partial_url
+        book_urls.append(full_url)
+
+    # Check for next page
+    next_button = soup.select_one("li.next a")
+    if next_button:
+        next_page_url = next_button["href"]
+        current_url = "/".join(current_url.split("/")[:-1]) + "/" + next_page_url
+    else:
+        current_url = None
 
 # Write to the CSV file
 with open("science_books.csv", mode="w", newline="", encoding="utf-8") as file:
