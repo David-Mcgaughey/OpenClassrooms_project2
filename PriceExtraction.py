@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 import csv
-import os
+
 
 base_url = "http://books.toscrape.com/"
 home_url = base_url
