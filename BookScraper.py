@@ -10,7 +10,7 @@ home_url = base_url
 if not os.path.exists("images"):
     os.makedirs("images")
 
-# Step 1: Get all categories
+# Get all categories
 response = requests.get(home_url)
 soup = BeautifulSoup(response.text, "html.parser")
 
@@ -20,7 +20,7 @@ categories = {
     for link in category_links
 }
 
-# Step 2: Loop through categories
+# Loop through categories
 for category_name, category_url in categories.items():
     print(f"Scraping category: {category_name}")
 
