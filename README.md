@@ -19,8 +19,8 @@ This is a simple example of an **ETL process**:
 Open your terminal or command prompt and type:
 
 ```bash
-git clone https://github.com/David-Mcgaughey/book-scraper.git
-cd book-scraper
+git clone https://github.com/David-Mcgaughey/OpenClassrooms_project2.git
+cd OpenClassrooms_project2
 ```
 
 ### Step 2: (Optional) Set Up a Virtual Environment
