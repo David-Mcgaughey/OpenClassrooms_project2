@@ -1,6 +1,13 @@
 # created by virtualenv automatically
+
+
 *venv/
 __pycache__/
 *.pyc
+
+*.csv
+images/
+
+
 
 
